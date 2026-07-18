@@ -41,7 +41,12 @@
     background:linear-gradient(135deg,#fff 30%,#9db4e8 100%);
     -webkit-background-clip:text; background-clip:text; color:transparent;
   }
-  .hero .tagline{font-size:1.15rem; color:var(--text-dim); max-width:640px; margin:0 auto 22px}
+  .hero .tagline{font-size:1.15rem; color:var(--text-dim); max-width:640px; margin:0 auto 22px; letter-spacing:0.01em}
+  .hero .tagline .acr{
+    font-weight:800; font-size:1.24em;
+    background:linear-gradient(135deg,#fff 30%,#9db4e8 100%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
   .hero p.lead{max-width:660px; margin:0 auto 30px; color:var(--text-dim); font-size:1rem}
 
   .badges{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:32px}
@@ -158,7 +163,7 @@
 
 <div class="hero wrap">
   <h1>NARIMAN</h1>
-  <p class="tagline">Neonatal Airway Research: Intubation Measurement And Navigation</p>
+  <p class="tagline"><span class="acr">N</span>eonatal <span class="acr">A</span>irway <span class="acr">R</span>esearch: <span class="acr">I</span>ntubation <span class="acr">M</span>easurement <span class="acr">A</span>nd <span class="acr">N</span>avigation</p>
   <p class="lead">
     A cross-platform desktop app for frame-by-frame measurement of neonatal intubation video.
     Calibrate a blade once, place a few reference points, and it computes clinical angles,
