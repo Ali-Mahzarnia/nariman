@@ -135,6 +135,29 @@
   }
   .steps li b{color:var(--text)}
 
+  .dl-grid{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:18px;
+    max-width:760px; margin:0 auto;
+  }
+  .dl-card{
+    background:var(--bg-soft); border:1px solid var(--border); border-radius:var(--radius);
+    padding:30px 26px; text-align:center; position:relative;
+    transition:border-color .15s ease, transform .15s ease;
+  }
+  .dl-card:hover{border-color:var(--accent); transform:translateY(-2px)}
+  .dl-icon{
+    width:52px; height:52px; margin:0 auto 14px; display:flex; align-items:center; justify-content:center;
+    border-radius:14px; background:var(--panel); border:1px solid var(--border);
+  }
+  .dl-icon svg{width:26px; height:26px; fill:var(--text)}
+  .dl-card h3{margin:0 0 4px; font-size:1.15rem}
+  .dl-card .dl-sub{color:var(--text-dim); font-size:0.86rem; margin-bottom:18px}
+  .dl-btns{display:flex; flex-direction:column; gap:9px; align-items:stretch}
+  .dl-btns .btn{display:flex; justify-content:space-between; align-items:center; gap:10px}
+  .dl-btns .btn .size{font-weight:400; font-size:0.8rem; opacity:0.75}
+  .dl-note{color:var(--text-faint); font-size:0.78rem; margin-top:14px; line-height:1.45}
+  .dl-all{text-align:center; margin-top:22px; font-size:0.88rem}
+
   footer{border-top:1px solid var(--border); padding:36px 0; color:var(--text-faint); font-size:0.85rem}
   footer .wrap{display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; align-items:center}
   footer a{color:var(--text-dim)}
@@ -155,6 +178,7 @@
       <a href="#measures">What it measures</a>
       <a href="#features">Features</a>
       <a href="#workflow">Workflow</a>
+      <a href="#download">Download</a>
       <a href="NARIMAN_User_Manual.pdf">Manual</a>
       <a href="https://github.com/Ali-Mahzarnia/nariman">GitHub</a>
     </nav>
@@ -180,7 +204,8 @@
   </div>
 
   <div class="cta">
-    <a class="btn primary" href="https://github.com/Ali-Mahzarnia/nariman">View on GitHub</a>
+    <a class="btn primary" href="#download">Download — free</a>
+    <a class="btn ghost" href="https://github.com/Ali-Mahzarnia/nariman">View on GitHub</a>
     <a class="btn ghost" href="NARIMAN_User_Manual.pdf">Read the User Manual</a>
   </div>
 
@@ -259,6 +284,43 @@
       <li><b>Segment</b> a trial's start and end frame, then Compute for full range-of-motion statistics.</li>
       <li><b>Export</b> to Excel — one workbook, one sheet per subject, one row per trial.</li>
     </ol>
+  </div>
+</section>
+
+<section id="download">
+  <div class="wrap">
+    <h2 class="section-title">Download</h2>
+    <p class="section-sub">Version 1.0.0 — standalone, free, and fully offline. No installer, no account, no internet connection required.</p>
+    <!-- Apple & Windows glyphs: Font Awesome Free brand icons (CC BY 4.0) -->
+    <div class="dl-grid">
+      <div class="dl-card">
+        <div class="dl-icon">
+          <svg viewBox="0 0 384 512" aria-hidden="true"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>
+        </div>
+        <h3>macOS</h3>
+        <div class="dl-sub">Universal — Apple Silicon &amp; Intel · macOS 11+</div>
+        <div class="dl-btns">
+          <a class="btn primary" href="https://github.com/Ali-Mahzarnia/nariman/releases/download/v1.0.0/NARIMAN-1.0.0-universal.dmg">Download .dmg <span class="size">814 MB</span></a>
+        </div>
+        <div class="dl-note">First launch only: if macOS doesn't open the app right away, go to
+        <b>System Settings → Privacy &amp; Security</b>, scroll down, and click <b>Open Anyway</b>.
+        After that it opens normally.</div>
+      </div>
+      <div class="dl-card">
+        <div class="dl-icon">
+          <svg viewBox="0 0 448 512" aria-hidden="true"><path d="M0 93.7l183.6-25.3v177.4H0V93.7zm0 324.6l183.6 25.3V268.4H0v149.9zm203.8 28L448 480V268.4H203.8v177.9zm0-380.6v180.1H448V32L203.8 65.7z"/></svg>
+        </div>
+        <h3>Windows</h3>
+        <div class="dl-sub">Portable .exe — run it from anywhere, nothing to install</div>
+        <div class="dl-btns">
+          <a class="btn primary" href="https://github.com/Ali-Mahzarnia/nariman/releases/download/v1.0.0/NARIMAN-1.0.0-x64-Portable.exe">Download 64-bit <span class="size">647 MB</span></a>
+          <a class="btn primary" href="https://github.com/Ali-Mahzarnia/nariman/releases/download/v1.0.0/NARIMAN-1.0.0-ia32-Portable.exe">Download 32-bit <span class="size">634 MB</span></a>
+        </div>
+        <div class="dl-note">Not sure which? Almost every Windows 10/11 machine is 64-bit.
+        First launch only: if a blue SmartScreen box appears, click <b>More info → Run anyway</b>.</div>
+      </div>
+    </div>
+    <div class="dl-all"><a href="https://github.com/Ali-Mahzarnia/nariman/releases">All versions &amp; release notes on GitHub →</a></div>
   </div>
 </section>
 
