@@ -7,7 +7,8 @@ build/
 
 # Bundled binaries & models (fetched/placed separately, not versioned)
 resources/bin/
-resources/win-vcruntime/   # Microsoft VC++ runtime DLLs for Windows onnxruntime
+# Microsoft VC++ runtime DLLs for Windows onnxruntime
+resources/win-vcruntime/
 
 # Speech-recognition model — fetched separately, not versioned (large, and
 # not derived from this project's own AGPL-licensed training)

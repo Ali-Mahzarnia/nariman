@@ -5916,6 +5916,12 @@ async function exportScreenshot() {
 async function exportVideoSegment(seg, isPaused = () => false) {
   const vs = state.primary;
   if (!vs.el) return;
+  // ▶ Play auto-enables blade tracking whenever a blade template exists —
+  // Export must do the same, or an off toggle (e.g. left off by an export-jump
+  // restore) silently produces a pose-only video while Play looks fine.
+  if (state.template) enableBladeTracker();
+  clearTimeout(_bladeTimer);    // kill enableBladeTracker's 30ms retrack timer NOW —
+  state._bladeToken++;          // the export loop drives all blade detection itself
   const fps = vs.fps || 30;
   // Composite video + overlay into a single export canvas for recording
   const exportCanvas = document.createElement('canvas');
@@ -5932,7 +5938,8 @@ async function exportVideoSegment(seg, isPaused = () => false) {
   const recorder = new MediaRecorder(stream, { mimeType });
   const chunks = [];
   recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
-  recorder.start(200);
+  // recorder.start() happens AFTER the warm-up lead-in below — starting it here
+  // would record the blank export canvas while the trackers warm up.
 
   const savedFrame  = state.frame;
   const savedPose   = state.poseCurrent;
@@ -5952,6 +5959,54 @@ async function exportVideoSegment(seg, isPaused = () => false) {
   let exportTs = 0;
   const canDetect = state.poseEnabled && !!window.PoseEngine;
   if (canDetect) { try { await window.PoseEngine.reset(); } catch (e) {} }
+
+  // Blade tracking — export predates the blade tracker and never drove it
+  // (scheduleBladeTrack bails on compute.running), so exported video froze or
+  // omitted the Fit L. Mirror Compute/Play: Computed bladeData is authoritative;
+  // otherwise a live in-order fast detect on the seeked frame, with the SAME
+  // warm-up lead-in Play/Compute use so the smoothers are warm at seg.start.
+  const wantBlade = state.bladeTrackerEnabled && !!state.template
+    && (state.activeTemplate === 1 || state.activeTemplate === 2 || state.activeTemplate === 3)
+    && !!window.BladeTracker && !!window.api?.bladeInfer;
+  const bladeDims = wantBlade ? getNativeDims('primary') : null;
+  const bladeRoi = state.bladeRoi || { x: 0, y: 0, w: 1, h: 1 };
+  const savedLfit = state.lfit;
+  if (bladeDims) {
+    clearTimeout(_bladeTimer);   // a pre-export scheduled detect must not fire mid-loop
+    state._bladeToken++;
+    // Fresh smoother history for this in-order walk (warmed by the lead-in below).
+    bladeSmoother()?.reset();
+    bladeAngleSmoother()?.reset();
+  }
+
+  // ── Warm-up lead-in (Compute's warmStart / Play's pre-buffer, before recording):
+  // walk the N-1 frames before the segment through pose AND blade in order,
+  // detect-only — nothing is drawn to the export canvas and the recorder is not
+  // running yet, so these frames never appear in the file. Without this the
+  // trackers start COLD at seg.start (unsmoothed pose, jumpy blade detections).
+  const warmStart = (canDetect || bladeDims) ? Math.max(0, seg.start - (N - 1)) : seg.start;
+  const warmTotal = Math.max(1, seg.start - warmStart);
+  for (let F = warmStart; F < seg.start; F++) {
+    await awaitMainFrame(F);
+    state.frame = F;
+    exportTs += 33;
+    const wk = _poseKey(F, N);
+    if (!state.poseCache[F] && !state.poseDetCache.has(wk) && canDetect && vs.el.readyState >= 2) {
+      let res;
+      try { res = await window.PoseEngine.detectForVideo(_roiImg(vs.el), exportTs); } catch (e) {}
+      const lms = _remapROI(_toArr(res));
+      if (lms) poseDetCachePut(F, N, lms);
+    }
+    if (bladeDims) {
+      showBladeProgress('Blade warm-up…');
+      try { await bladeDetectAndSmooth(vs.el, bladeRoi, bladeDims, state.activeTemplate, true); } catch (e) {}
+    }
+    showBufferingLabel(`Export warm-up… ${F - warmStart + 1} / ${warmTotal}`);
+    setBufferBar(Math.round((F - warmStart + 1) / warmTotal * 100));
+    while (isPaused()) await new Promise(r => setTimeout(r, 150));
+  }
+
+  recorder.start(200);
 
   for (let F = seg.start; F <= seg.end; F++) {
     const t0 = performance.now();
@@ -5979,6 +6034,23 @@ async function exportVideoSegment(seg, isPaused = () => false) {
       state.poseCurrent = null;
     }
 
+    // Blade for this frame — the LIVE pipeline, exactly what ▶ Play and Compute
+    // display: a fresh in-order fast detect on the seeked frame (warm smoothers
+    // + LSD refine, all inside bladeDetectAndSmooth). Deliberately NO reads from
+    // stored seg.bladeData or _bladeCache: replaying values produced under an
+    // OLDER session's ROI/settings/smoother history — and switching between
+    // stored and live at coverage boundaries — is what made some exported
+    // frames jump to detections Play/Compute never showed.
+    // redraw=false — drawFrame below repaints the overlay once.
+    if (bladeDims) {
+      showBladeProgress(`Blade ${Math.round((F - seg.start + 1) / totalFrames * 100)}%`, Math.round((F - seg.start + 1) / totalFrames * 100));
+      let out = { none: true };
+      try { out = await bladeDetectAndSmooth(vs.el, bladeRoi, bladeDims, state.activeTemplate, true); } catch (e) {}
+      if (out.res) { _bladeCache.set(F, out.res); applyBladeResult(out.res, bladeDims, false); }
+      else if (out.none) { _bladeCache.set(F, null); clearBladeFit(false); }
+      // out.reject → fast-mode outlier: hold the previous frame's L (same as Play)
+    }
+
     drawFrame(vs);   // → canvas-primary (video/black) + overlay-primary (pose/meas/CC)
     // Flatten both layers onto the export canvas that MediaRecorder is watching
     exportCtx.clearRect(0, 0, exportCanvas.width, exportCanvas.height);
@@ -6003,11 +6075,20 @@ async function exportVideoSegment(seg, isPaused = () => false) {
   recorder.stop();
   await new Promise(resolve => recorder.addEventListener('stop', resolve, { once: true }));
   hideBufferingLabel(); hideBufferBar();
+  if (bladeDims) hideBladeProgress();
 
   // Restore state
   state.compute = savedCompute;
   state.frame = savedFrame;
   state.poseCurrent = savedPose;
+  if (bladeDims) {
+    // Put the pre-export Fit L back; the awaitMainFrame seek below re-fires
+    // scheduleBladeTrack (compute no longer running) which re-detects the
+    // parked frame accurately anyway.
+    state.lfit = savedLfit;
+    bladeSmoother()?.reset();
+    bladeAngleSmoother()?.reset();
+  }
   if (canDetect) { try { await window.PoseEngine.reset(); } catch (e) {} }
   await awaitMainFrame(savedFrame);
   drawFrame(vs);
