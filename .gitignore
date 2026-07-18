@@ -76,6 +76,7 @@ __pycache__/
 !blade_checkerboard2.jpeg
 !blade_checkerboard3.jpeg
 !docs/screenshot.png
+!docs/loop.mp4
 
 # Electron builder cache
 .cache/

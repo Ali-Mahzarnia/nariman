@@ -123,6 +123,20 @@
     margin-bottom:6px; letter-spacing:0.01em;
   }
 
+  .live{padding-top:20px}
+  .live-stage{
+    position:relative; max-width:960px; margin:0 auto;
+    background:radial-gradient(ellipse at center,rgba(79,157,255,0.07),transparent 70%);
+  }
+  .live-stage video{
+    display:block; width:100%; height:auto;
+    mix-blend-mode:screen; pointer-events:none;
+  }
+  .live-caption{
+    text-align:center; color:var(--text-faint); font-size:0.82rem; margin-top:6px;
+  }
+  .live-caption b{color:var(--text-dim); font-weight:600}
+
   .steps{counter-reset:step; list-style:none; padding:0; margin:0; display:grid; gap:12px}
   .steps li{
     counter-increment:step; position:relative; padding:16px 20px 16px 56px;
@@ -177,6 +191,7 @@
     <nav class="links">
       <a href="#measures">What it measures</a>
       <a href="#features">Features</a>
+      <a href="#live">Live</a>
       <a href="#workflow">Workflow</a>
       <a href="#download">Download</a>
       <a href="NARIMAN_User_Manual.pdf">Manual</a>
@@ -273,6 +288,19 @@
   </div>
 </section>
 
+<section id="live" class="live">
+  <div class="wrap">
+    <h2 class="section-title">The overlay, live</h2>
+    <p class="section-sub">Real output from a compute pass — hip angles L / R, blade fit, eye box, and the handle &amp; eye-to-horizon angles, tracked frame by frame.</p>
+    <div class="live-stage">
+      <video autoplay loop muted playsinline preload="auto"
+             src="loop.mp4"
+             aria-label="Animated overlay from a tracked trial: pose skeleton with left and right hip angles, fitted blade, eye region box, and live angle readouts."></video>
+    </div>
+    <p class="live-caption">A <b>dry-run trial</b>, exactly as the app draws it — no video underneath, just the measurement layer.</p>
+  </div>
+</section>
+
 <section id="workflow">
   <div class="wrap">
     <h2 class="section-title">Workflow</h2>
@@ -330,6 +358,13 @@
     <span><a href="https://github.com/Ali-Mahzarnia/nariman">github.com/Ali-Mahzarnia/nariman</a></span>
   </div>
 </footer>
+
+<script>
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    var v = document.querySelector('#live video');
+    if (v) { v.autoplay = false; v.pause(); v.controls = true; v.style.pointerEvents = 'auto'; }
+  }
+</script>
 
 </body>
 </html>
