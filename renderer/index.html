@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NARIMAN</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     STUB: Welcome screen — insert before #app when ready.
+     ═══════════════════════════════════════════════════════════ -->
+
+<div id="app">
+
+  <!-- ── App title banner ────────────────────────────────── -->
+  <div id="app-title" style="background:#0d0d10;padding:3px 12px;border-bottom:1px solid #1a1a1e;font-size:12px;color:#c8c8d0;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+    <b>NARIMAN</b> — <b>N</b>eonatal <b>A</b>irway <b>R</b>esearch: <b>I</b>ntubation <b>M</b>easurement <b>A</b>nd <b>N</b>avigation
+  </div>
+
+  <!-- ── Top toolbar ─────────────────────────────────────── -->
+  <!-- Two visual rows (.toolbar-row). ROW 1 = the per-frame measurement/setup
+       tools; ROW 2 = the sectioned workflow (Blade, Pose, Segment, Audio, Export,
+       misc). Only the ORDER changed vs. before — every button keeps the exact same
+       id / class / handler, so nothing about how any control works has changed. -->
+  <div id="toolbar">
+
+    <!-- ═══ ROW 1 — measurement / setup tools ═══ -->
+    <div class="toolbar-row">
+      <button id="btn-load-primary">Load Primary Video</button>
+      <button id="btn-load-secondary">Load Secondary Video</button>
+      <span class="sep"></span>
+
+      <button id="btn-mag-primary" class="toggle" title="Toggle magnifier on primary view">Loupe P</button>
+      <button id="btn-mag-secondary" class="toggle" title="Toggle magnifier on secondary view">Loupe S</button>
+      <span class="sep"></span>
+
+      <span class="step-group">
+        <button id="btn-set-scale" class="tool-btn" title="Place blade template to lock cm/pixel scale">Set Scale</button>
+        <button class="clear-btn" id="clear-scale" title="Clear scale (and blade pose)">×</button>
+      </span>
+      <span class="step-group">
+        <button id="btn-eye" class="tool-btn" title="Place eye reference dot">Place Eye</button>
+        <button class="clear-btn" id="clear-eye" title="Clear eye dot">×</button>
+      </span>
+      <span class="step-group">
+        <button id="btn-thumb" class="tool-btn" title="Place finger-on-handle reference dot (finger–blade base distance)">Finger on Handle</button>
+        <button class="clear-btn" id="clear-thumb" title="Clear finger dot">×</button>
+      </span>
+      <span class="step-group">
+        <button id="btn-horizon" class="tool-btn" title="Place two-point horizon line">Place Horizon</button>
+        <button class="clear-btn" id="clear-horizon" title="Clear horizon line">×</button>
+      </span>
+      <span class="step-group">
+        <button id="btn-fit-l" class="tool-btn" title="Fit L-template: click handle base then joint">Fit L</button>
+        <button class="clear-btn" id="clear-lfit" title="Clear L fit">×</button>
+      </span>
+      <span class="sep"></span>
+
+      <span class="step-group">
+        <button id="btn-sec-hor" class="tool-btn" title="SECONDARY view: place your own horizon/level line (reference for F & finger angles). Separate from the primary horizon.">Sec Horizon</button>
+        <button class="clear-btn" id="clear-sec-hor" title="Clear secondary horizon">×</button>
+      </span>
+      <span class="step-group">
+        <button id="btn-sec-f" class="tool-btn" title="SECONDARY view: blade roll (f) angle — click two points along the f mark">Angle F ⟂</button>
+        <button class="clear-btn" id="clear-sec-f" title="Clear Angle F">×</button>
+      </span>
+      <span class="step-group">
+        <button id="btn-sec-finger" class="tool-btn" title="SECONDARY view: finger roll angle — click two points along the finger">Angle Finger ⟂</button>
+        <button class="clear-btn" id="clear-sec-finger" title="Clear Angle Finger">×</button>
+      </span>
+      <span class="sep"></span>
+
+      <button id="btn-load-defaults" title="One-click restore of the carefully tuned embedded default points (horizon, Fit L, eye, finger, scale, …). Always available.">Load Defaults</button>
+    </div>
+
+    <!-- ═══ ROW 2 — Blade · Pose · Segment · Audio · Export · misc ═══ -->
+    <div class="toolbar-row">
+
+      <!-- Unified BLADE box: tracking + subsegment (collapsed into a dropdown) +
+           templates + display, all in one bordered section instead of two, to
+           cut down on toolbar rows. Same IDs/handlers as before — Primary video
+           and the Board 1/2/3/custom buttons are visually its own "display"
+           sub-group (separated by a divider) so it's clear they're a view
+           toggle, not a "template" the way Define L/L2/L3/Lc are. -->
+      <span class="step-group" style="position:relative;background:#12395f;border:1px solid #4dabf7;border-radius:6px;padding:3px 7px;gap:5px;flex-wrap:wrap;">
+        <span style="color:#a5d8ff;font-weight:700;font-size:11px;letter-spacing:0.3px;">🔎 BLADE</span>
+        <button id="btn-blade-roi" class="toggle" style="border-color:#4dabf7;color:#a5d8ff;" title="Blade ROI: draw the region the blade tracker searches (separate from the pose ROI — this one never affects the pose). Draw it reasonably tight around the blade for best accuracy and speed. Saved in the segment file. Use × to delete.">Blade ROI</button>
+        <button class="clear-btn" id="clear-blade-roi" title="Delete the Blade ROI region">×</button>
+        <button id="btn-blade-track" class="toggle" style="border-color:#4dabf7;color:#a5d8ff;font-weight:600;" title="Run the trained blade-pose model (uses the ACTIVE blade 1/2/3) to auto-place Fit L (base + handle angle). Tracks inside the Blade ROI if drawn, else the whole frame. ▶ Play turns this on too.">Track ▶</button>
+        <button id="btn-blade-sub-menu" class="toggle" style="border-color:#4dabf7;color:#a5d8ff;" title="Subsegment: pick a range WITHIN the selected segment for blade angle/base statistics, and remove outlier frames. Click to open.">Subsegment ▾</button>
+        <!-- Blade progress moved OUT of the toolbar (it shifted the row / messed the
+             view) — it now shows as a top-RIGHT overlay on the primary video
+             (#blade-buffering-label), mirroring pose's top-LEFT #buffering-label. -->
+        <!-- Subsegment dropdown popover — hidden until "Subsegment ▾" is clicked. -->
+        <div id="blade-sub-menu" style="position:absolute;top:100%;left:0;margin-top:4px;z-index:30;background:#0d2540;border:1px solid #4dabf7;border-radius:6px;padding:6px 8px;display:none;align-items:center;gap:5px;flex-wrap:wrap;box-shadow:0 4px 12px rgba(0,0,0,0.5);width:max-content;">
+          <button id="btn-blade-sub-start" style="border-color:#4dabf7;color:#a5d8ff;" title="Mark the current frame as the Blade SUBSEGMENT start (a range within the selected segment used for blade angle/base statistics). Marking only Start (never End) is fine — End defaults to the segment's own end.">Sub Start</button>
+          <button id="btn-blade-sub-end" style="border-color:#4dabf7;color:#a5d8ff;" title="Mark the current frame as the Blade SUBSEGMENT end. Marking only End (never Start) is fine — Start defaults to the segment's own start.">Sub End</button>
+          <button class="clear-btn" id="clear-blade-sub" title="Clear the blade subsegment (stats fall back to the full segment)">×</button>
+          <button id="btn-blade-exclude" style="border-color:#4dabf7;color:#a5d8ff;" title="Exclude the CURRENT frame from blade subsegment statistics (a bad/outlier tracked frame). Separate from the Pose exclude list.">Exclude blade from this frame</button>
+        </div>
+        <span style="width:1px;height:16px;background:#4dabf7;opacity:0.4;margin:0 2px;"></span>
+        <!-- Fixed blades 1/2/3 have no × (they're embedded defaults); only custom is clearable -->
+        <button id="btn-define-template" class="tool-btn" title="Define blade-1 L template (blade_checkerboard.jpeg)">Define L</button>
+        <button id="btn-define-template-2" class="tool-btn" title="Define blade-2 L template (blade_checkerboard2.jpeg)">Define L2</button>
+        <button id="btn-define-template-3" class="tool-btn" title="Define blade-3 L template (blade_checkerboard3.jpeg)">Define L3</button>
+        <span class="step-group">
+          <button id="btn-define-template-4" class="tool-btn" title="Define the CUSTOM blade L template (pair with the custom checkerboard board)">Define Lc</button>
+          <button class="clear-btn" id="clear-template-4" title="Clear custom template">×</button>
+        </span>
+        <button id="btn-blade-toggle" class="toggle" title="Select which blade template drives Fit L (only changes Fit L size)">Blade 1</button>
+        <button id="btn-flip-l" style="border-color:#e8a23d;color:#ffd9a0;" title="Flip the active blade's bend direction (if its reference photo was mirrored). Persists with the template.">⟲ Flip L</button>
+        <span style="width:1px;height:16px;background:#4dabf7;opacity:0.4;margin:0 2px;"></span>
+        <!-- Display: which view is shown on the primary panel (video vs. one of the
+             reference checkerboard boards) — a mutually-exclusive view toggle, not
+             a blade template itself. -->
+        <button id="btn-board-video" class="toggle" title="Show the primary video (hide any blade-template board). Video time/frame is unchanged.">Primary video</button>
+        <button id="btn-board-1" class="toggle" title="Show blade-template-1 checkerboard on the primary view (toggle). Does not change the video time/frame.">Blade template 1</button>
+        <button id="btn-board-2" class="toggle" title="Show blade-template-2 checkerboard on the primary view (toggle).">Blade template 2</button>
+        <button id="btn-board-3" class="toggle" title="Show blade-template-3 checkerboard on the primary view (toggle).">Blade template 3</button>
+        <span class="step-group">
+          <button id="btn-board-c" class="toggle" title="Show a custom checkerboard image on the primary view (load + toggle).">Blade template C</button>
+          <button class="clear-btn" id="clear-board-c" title="Clear the custom picture only (keeps the Lc template definition) so a new one can be picked">×</button>
+        </span>
+      </span>
+
+      <!-- Pose section: purely a visual grouping (border/label) around the existing
+           Pose + ROI controls below — same elements, same IDs, same order, same
+           handlers. Nothing about how they work has changed. The ⌫ Pose@frame
+           exclude button now lives HERE (it's a pose action). -->
+      <span style="display:inline-flex;align-items:center;gap:5px;background:#2a1d33;border:1px solid #cc5de8;border-radius:6px;padding:3px 7px;">
+        <span style="color:#e9c4f5;font-weight:700;font-size:11px;letter-spacing:0.3px;">⛷ POSE</span>
+        <span class="step-group">
+          <button id="btn-pose" class="toggle" style="border-color:#cc5de8;color:#e9c4f5;font-weight:600;" title="Pose overlay on the primary view. Runs on the current frame; shows the skeleton and LEFT/RIGHT hip angles. Drag the 6 shoulder/hip/knee dots to fine-tune. Off by default.">⛷ Pose</button>
+          <label id="pose-smooth-wrap" title="Temporal smoothing window (frames). On landing, the pose engine is fed the preceding N frames in order so its internal video-mode tracker warms up; the tracked pose at the current frame is shown. Higher N = steadier (and slower); 1 = off." style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#bbb;">smooth<select id="pose-smooth"><option value="1">1</option><option value="5">5</option><option value="10">10</option><option value="15">15</option><option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option><option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="60">60</option><option value="70">70</option><option value="80">80</option><option value="90">90</option><option value="100">100</option><option value="120">120</option><option value="140">140</option><option value="160">160</option><option value="180">180</option><option value="200">200</option><option value="250">250</option><option value="300">300</option></select></label>
+          <label id="pose-conf-wrap" title="Minimum landmark confidence to treat a hip angle as reliable. Angles below it are still reported, just flagged ⚠. Updates instantly." style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#bbb;">conf<input type="range" id="pose-conf" min="0" max="100" value="50" style="width:78px;vertical-align:middle;"><span id="pose-conf-val" style="min-width:30px;">50%</span></label>
+        </span>
+        <span class="step-group">
+          <button id="btn-roi" class="toggle" title="ROI: toggle detection region. Draw a rectangle on video while active. Click again to hide (region saved). Use × to delete entirely.">ROI</button>
+          <button class="clear-btn" id="clear-roi" title="Delete ROI region">×</button>
+        </span>
+        <button id="btn-seg-exclude" title="Delete pose at this frame — exclude it from min/max/ROM/mean (e.g. pose is wrong)">⌫ Pose@frame</button>
+      </span>
+
+      <!-- Eye tracker: the red eye marker follows the pose's right eye by a stored
+           offset, so it tracks in play/compute/jumps. Needs Pose on. Cannot be
+           toggled during play/compute. -->
+      <span style="display:inline-flex;align-items:center;gap:5px;background:#33260d;border:1px solid #e8a23d;border-radius:6px;padding:3px 7px;">
+        <span style="color:#ffd8a8;font-weight:700;font-size:11px;letter-spacing:0.3px;">👁 EYE</span>
+        <button id="btn-eye-track" class="toggle" style="border-color:#e8a23d;color:#ffd8a8;font-weight:600;" title="Eye tracker: ties the red eye marker to the pose's right eye (a fixed offset captured when you place it) so it follows the head in play, compute and frame jumps. Turn Pose on and click to place the marker. Can't be toggled during play/compute.">👁 Eye track</button>
+        <button id="btn-eye-exclude" style="border-color:#e8a23d;color:#ffd8a8;" title="Exclude the CURRENT frame from the eye subsegment statistics (c-angle & eye↔joint distance). Separate from the pose/blade exclude lists.">Exclude eye @frame</button>
+      </span>
+
+      <!-- Segment workflow section: purely a visual grouping (border/label),
+           same as the Blade/Pose boxes — same IDs, same order, same handlers,
+           nothing about how any of it works has changed. Everything here works
+           on the SELECTED segment, for both pose (hip) and blade stats. The 🔊
+           Audio toggle moved OUT to sit with the 🎙 Audio ▾ dropdown. -->
+      <span style="display:inline-flex;align-items:center;gap:5px;background:#1a2e1a;border:1px solid #51cf66;border-radius:6px;padding:3px 7px;flex-wrap:wrap;">
+        <span style="color:#b2f2bb;font-weight:700;font-size:11px;letter-spacing:0.3px;">📋 SEGMENT</span>
+        <span id="seg-file-name" title="Active segment file" style="font-size:11px;color:#888;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">no file</span>
+        <button id="btn-seg-new"    title="Create a new segment file">New</button>
+        <button id="btn-seg-open"   title="Open a segment JSON from anywhere on disk (e.g. one emailed to you)">Open…</button>
+        <button id="btn-seg-save"   title="Save the active segment file (atomic write)">Save</button>
+        <button id="btn-seg-saveas" title="Save the segment file to a new location (portable to other users)">Save As…</button>
+        <label title="Pick the current segment in the active file" style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#bbb;">Segment<select id="seg-select" style="background:#1a1a1e;color:#e8e8ea;border:1px solid #555;border-radius:4px;padding:3px;"></select></label>
+        <span style="width:1px;height:16px;background:#51cf66;opacity:0.4;margin:0 2px;"></span>
+        <button id="btn-seg-start" title="Mark the current frame as the segment START">⟦ Start</button>
+        <button id="btn-seg-end" title="Mark the current frame as the segment END">End ⟧</button>
+        <button id="btn-seg-add" title="Add a new segment from the marked Start to End">+ Segment</button>
+        <button id="btn-seg-compute" title="Play the SELECTED segment with the live Pose tracker (or free from the current frame if no segment is selected). Click to pause; click to resume.">▶ Play</button>
+        <label style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#bbb;" title="Pre-buffer this many seconds on each side of the current position before playback starts">buf <select id="buffer-sec" style="background:#1a1a1e;color:#e8e8ea;border:1px solid #555;border-radius:4px;padding:2px;"><option value="1">1 s</option><option value="2">2 s</option><option value="3" selected>3 s</option><option value="4">4 s</option><option value="5">5 s</option><option value="10">10 s</option></select></label>
+        <label style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#bbb;" title="Playback speed — 1x = real-time at the video fps; 0.5x = slow-motion; only applies to buffered frames">speed <select id="play-speed" style="background:#1a1a1e;color:#e8e8ea;border:1px solid #555;border-radius:4px;padding:2px;"><option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="0.75">0.75x</option><option value="1" selected>1x</option></select></label>
+        <button id="btn-seg-compute-all" title="Compute the SELECTED segment's stats (Pose video tracker, frame by frame — plus Blade, if the Blade tracker is on). Click again to pause/resume.">Compute</button>
+        <button id="btn-seg-panel" class="toggle" title="Show/hide the Segments panel (rename, delete, stats, warnings)">Segments ▾</button>
+      </span>
+
+      <!-- Audio: the play-time 🔊 Audio toggle sits with the 🎙 Audio ▾ panel. -->
+      <span class="step-group">
+        <button id="btn-audio-toggle" class="toggle" title="Unmute video audio during ▶ Play (RVFC native playback). Clicking automatically sets speed to 1x. Pose overlay runs best-effort — audio never waits for pose.">🔊 Audio</button>
+        <button id="btn-audio-panel" class="toggle" title="Show/hide the Audio panel — extract speech, scan for a keyword, and show CC subtitles">🎙 Audio ▾</button>
+      </span>
+
+      <!-- Export XLSX + jump-to-export dropdown + its Remove, grouped together. -->
+      <span class="step-group">
+        <button id="btn-export-xl">Export XLSX</button>
+        <select id="export-jump" title="Jump to a frame where Export XLSX was clicked" style="background:#1a1a1e;color:#ffd43b;border:1px solid #555;border-radius:4px;padding:3px;"><option value="">Export ▾</option></select><span id="export-pos-label" style="font-size:11px;color:#ffd43b;display:none;margin:0 3px;"></span><button id="btn-export-remove" disabled title="Remove this export checkpoint from the session file" style="color:#f66;background:#1a1a1e;border:1px solid #555;border-radius:4px;padding:3px 7px;cursor:pointer;opacity:0.4;">✕ Remove</button>
+      </span>
+      <span class="sep"></span>
+
+      <!-- Everything left: grip, units, initials, undo, hide video, export media, front eye/foot. -->
+      <button id="btn-grip-panel" class="toggle" title="Set grip style for this session — recorded in JSON and Excel export">Grip ▾</button>
+      <button id="btn-units" class="toggle" title="Toggle measurement units (cm ↔ in)">cm</button>
+      <button id="btn-initials-panel" class="toggle" title="Operator initials (up to 3 letters) — recorded in JSON and Excel export">Initials ▾</button>
+      <button id="btn-undo">Undo</button>
+      <button id="btn-hide-video" class="toggle" title="Black out both video frames — all overlays (pose, measurements, CC) still render">Hide Video</button>
+      <button id="btn-export-media" title="No segment selected: screenshot of both views. Segment selected: export primary video segment with all overlays as a video file.">Export Media</button>
+      <button id="btn-eye-toggle" class="toggle" title="Which eye is the front eye. When Pose is on it auto-updates per frame from the pose (eyes); click to override on the current frame (auto resumes when you move to another frame).">Front eye: Right</button>
+      <button id="btn-foot-toggle" class="toggle" title="Which leg was the front leg (recorded in the export). When Pose is on it auto-updates per frame from the pose (ankles); click to override on the current frame (auto resumes when you move to another frame).">Front leg: Right</button>
+    </div>
+
+    <!-- ── STUB: tutorial overlay toggle — wire up #tutorial-overlay
+         and show/hide it here when the guide is built ── -->
+  </div>
+
+  <!-- ── Audio panel ──────────────────────────────────────────────────── -->
+  <div id="audio-panel" style="display:none;padding:5px 10px;background:#111114;border-bottom:1px solid #2a2a2e;font-size:12px;">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:7px;">
+      <button id="btn-audio-transcribe" title="Extract 16 kHz mono WAV (saved next to the video) then transcribe all speech to text. Resumes a paused run automatically. Click again while running to pause.">🎙 Extract &amp; Transcribe</button>
+      <button id="btn-audio-search" title="Search the loaded transcript for the keyword. Run Extract &amp; Transcribe first.">🔍 Search</button>
+      <label title="Word to search for (exact match on transcript words, case-insensitive)">Keyword: <input type="text" id="audio-keyword" placeholder="e.g. proceed" style="width:100px;background:#1a1a1e;color:#e8e8ea;border:1px solid #555;border-radius:3px;padding:2px 5px;font-size:11px;"></label>
+      <label title="How aggressively to detect speech. High catches softer/quieter speech but may include more background noise; Low only catches clear speech.">Speech: <select id="audio-sens" style="background:#1a1a1e;color:#e8e8ea;border:1px solid #555;border-radius:3px;padding:2px 4px;font-size:11px;"><option value="default" selected>Default</option><option value="high">High (soft speech)</option><option value="low">Low (clear only)</option></select></label>
+      <button id="btn-cc-toggle" class="toggle" title="Show transcript subtitles on the primary video during playback (requires a loaded transcript)">CC</button>
+      <span id="audio-status" style="color:#888;flex:1;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;">—</span>
+      <select id="audio-results" style="display:none;width:190px;flex-shrink:0;background:#1a1a1e;color:#e8e8ea;border:1px solid #555;border-radius:3px;padding:2px 4px;font-size:11px;cursor:pointer;"></select>
+      <div style="height:4px;width:120px;flex-shrink:0;background:#2a2a2e;border-radius:2px;overflow:hidden;align-self:center;">
+        <div id="audio-buf-bar" style="height:100%;width:0%;background:#20c997;transition:width 0.2s;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Grip panel ──────────────────────────────────────────────────── -->
+  <div id="grip-panel" style="display:none;padding:5px 10px;background:#111114;border-bottom:1px solid #2a2a2e;font-size:12px;">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;">
+      <span style="color:#ccc;">Grip style:</span>
+      <select id="grip-style-select" style="background:#1a1a1e;color:#e8e8ea;border:1px solid #555;border-radius:4px;padding:3px;">
+        <option value="">— choose —</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="custom">Custom…</option>
+      </select>
+      <input id="grip-custom-input" type="text" placeholder="style name" maxlength="40" style="display:none;padding:3px 6px;background:#1a1a1e;color:#e8e8ea;border:1px solid #555;border-radius:4px;width:120px;" />
+      <span id="grip-current-label" style="color:#888;font-size:11px;"></span>
+    </div>
+  </div>
+
+  <!-- ── Initials panel ──────────────────────────────────────────────── -->
+  <div id="initials-panel" style="display:none;padding:5px 10px;background:#111114;border-bottom:1px solid #2a2a2e;font-size:12px;">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;">
+      <span style="color:#ccc;">Operator initials:</span>
+      <input id="initials-input" type="text" placeholder="ABC" maxlength="3" style="padding:3px 6px;background:#1a1a1e;color:#e8e8ea;border:1px solid #555;border-radius:4px;width:50px;text-transform:uppercase;letter-spacing:2px;font-size:13px;" />
+      <span style="font-size:11px;color:#666;">Saved in JSON &amp; Excel</span>
+    </div>
+  </div>
+
+  <!-- ── Main view area ──────────────────────────────────── -->
+  <div id="views">
+
+    <!-- Primary view -->
+    <div class="view-panel" id="panel-primary">
+      <div class="view-label">Primary</div>
+      <div class="canvas-wrap" id="wrap-primary">
+        <canvas id="canvas-primary"></canvas>
+        <canvas id="overlay-primary" class="overlay"></canvas>
+        <canvas id="loupe-primary" class="loupe hidden"></canvas>
+        <div id="buffering-label" style="display:none;position:absolute;top:8px;left:8px;z-index:20;background:rgba(0,0,0,0.62);color:#fff;font-weight:700;font-size:13px;padding:3px 10px;border-radius:12px;pointer-events:none;white-space:nowrap;letter-spacing:0.01em;"></div>
+        <div id="blade-buffering-label" style="display:none;position:absolute;top:8px;right:8px;z-index:20;background:rgba(0,0,0,0.62);color:#a5d8ff;font-weight:700;font-size:13px;padding:3px 10px;border-radius:12px;pointer-events:none;white-space:nowrap;letter-spacing:0.01em;"></div>
+      </div>
+      <div class="scrub-row">
+        <div id="slider-col" style="flex:1;display:flex;flex-direction:column;gap:2px;">
+          <div id="seg-bars" title="Segments (numbered bars) and Export marks (dots)"></div>
+          <div id="buffer-bar" title="Left = Pose buffer · Right = Blade warm-start" style="display:none;height:3px;gap:2px;margin-bottom:1px;">
+            <div style="flex:1;background:#2a2a2e;border-radius:2px;overflow:hidden;"><div id="buffer-bar-fill" style="height:100%;width:0%;background:#f59e0b;transition:width 0.1s linear;"></div></div>
+            <div style="flex:1;background:#2a2a2e;border-radius:2px;overflow:hidden;"><div id="buffer-bar-fill-blade" style="height:100%;width:0%;background:#4dabf7;transition:width 0.1s linear;"></div></div>
+          </div>
+          <input type="range" id="slider-primary" min="0" value="0" step="1" style="flex:none;width:100%;" />
+        </div>
+        <span class="timecode-group">
+          <input type="number" class="tc-input tc-mm" id="tc-mm-primary" min="0" value="0" title="Minutes">
+          <span class="tc-sep">:</span>
+          <input type="number" class="tc-input tc-ss" id="tc-ss-primary" min="0" max="59" value="0" title="Seconds">
+          <span class="tc-sep">.</span>
+          <input type="number" class="tc-input tc-ms" id="tc-ms-primary" min="0" max="999" value="0" title="Milliseconds">
+          <span class="tc-pipe"> | Fr</span>
+          <input type="number" class="tc-input tc-fr" id="tc-fr-primary" min="0" value="0" title="Frame">
+          <span id="tc-tot-primary" class="tc-tot">/ 0</span>
+        </span>
+        <label class="fps-wrap" title="Detected fps — edit to override if wrong">
+          FPS <input type="number" id="fps-primary" class="fps-input" min="1" max="240" step="0.001" value="30" />
+          <span id="fps-status-primary" class="fps-status">—</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Secondary view -->
+    <div class="view-panel" id="panel-secondary">
+      <div class="view-label">Secondary</div>
+      <div class="canvas-wrap" id="wrap-secondary">
+        <canvas id="canvas-secondary"></canvas>
+        <canvas id="overlay-secondary" class="overlay"></canvas>
+        <canvas id="loupe-secondary" class="loupe hidden"></canvas>
+      </div>
+      <div class="scrub-row">
+        <input type="range" id="slider-secondary" min="0" value="0" step="1" />
+        <span class="timecode-group">
+          <input type="number" class="tc-input tc-mm" id="tc-mm-secondary" min="0" value="0" title="Minutes">
+          <span class="tc-sep">:</span>
+          <input type="number" class="tc-input tc-ss" id="tc-ss-secondary" min="0" max="59" value="0" title="Seconds">
+          <span class="tc-sep">.</span>
+          <input type="number" class="tc-input tc-ms" id="tc-ms-secondary" min="0" max="999" value="0" title="Milliseconds">
+          <span class="tc-pipe"> | Fr</span>
+          <input type="number" class="tc-input tc-fr" id="tc-fr-secondary" min="0" value="0" title="Frame">
+          <span id="tc-tot-secondary" class="tc-tot">/ 0</span>
+        </span>
+        <label class="fps-wrap" title="Detected fps — edit to override if wrong">
+          FPS <input type="number" id="fps-secondary" class="fps-input" min="1" max="240" step="0.001" value="30" />
+          <span id="fps-status-secondary" class="fps-status">—</span>
+        </label>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Point fine-tune panel ─────────────────────────────── -->
+  <div id="point-panel"></div>
+
+  <!-- ── Segments panel (Range/Segments) ──────────────────── -->
+  <div id="seg-panel" class="hidden"></div>
+
+  <!-- ── Measurement readout ─────────────────────────────── -->
+  <div id="readout">
+    <div class="readout-item" id="ro-scale">Scale: —</div>
+    <div class="readout-item" id="ro-blade-angle">Blade angle (a): —</div>
+    <div class="readout-item" id="ro-horizon-angle">Horizon angle (c): —</div>
+    <div class="readout-item" id="ro-eye-angle">Eye–blade angle: —</div>
+    <div class="readout-item" id="ro-eye-dist">Eye–tip dist: —</div>
+    <div class="readout-item" id="ro-pose">Pose hip (L/R): —</div>
+    <div class="readout-item" id="ro-secf">F roll (S): —</div>
+    <div class="readout-item" id="ro-secfinger">Finger roll (S): —</div>
+  </div>
+
+  <!-- Photo grid-scale modal for Define L -->
+  <div id="modal-grid-scale" class="modal hidden">
+    <div class="modal-box">
+      <h3>Photo Grid Scale</h3>
+      <p>Enter the real-world distance between the two grid points you clicked (always in inches — the checkerboard is an inch grid).</p>
+      <label>Distance (inches): <input type="number" id="input-grid-inches" min="0.1" step="0.5" value="1" /></label>
+      <div class="modal-actions">
+        <button id="btn-grid-scale-confirm">Confirm</button>
+        <button id="btn-grid-scale-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scale input modal -->
+  <div id="modal-scale" class="modal hidden">
+    <div class="modal-box">
+      <h3>Set Blade Scale</h3>
+      <p>Draw a line along the blade, then enter the real-world length.</p>
+      <label>Blade length (<span id="lbl-scale-unit">cm</span>): <input type="number" id="input-blade-cm" min="0.1" step="0.1" value="10" /></label>
+      <div class="modal-actions">
+        <button id="btn-scale-confirm">Confirm</button>
+        <button id="btn-scale-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load defaults modal (selective) -->
+  <div id="modal-load-defs" class="modal hidden">
+    <div class="modal-box">
+      <h3>Load Defaults</h3>
+      <label>Saved set:
+        <select id="load-defs-select" style="margin-top:6px;padding:6px;background:#1a1a1e;color:#e8e8ea;border:1px solid #555;border-radius:5px;width:100%;"></select>
+      </label>
+      <p style="font-size:12px;color:#888;">Choose what to load:</p>
+      <div id="load-defs-items" style="display:flex;flex-direction:column;gap:5px;font-size:13px;">
+        <label><input type="checkbox" data-k="scale" checked> Scale</label>
+        <label><input type="checkbox" data-k="template" checked> L Templates (blade 1 &amp; 2 dims)</label>
+        <label><input type="checkbox" data-k="lfit" checked> Fit L position</label>
+        <label><input type="checkbox" data-k="eye" checked> Eye</label>
+        <label><input type="checkbox" data-k="thumb" checked> Finger on handle</label>
+        <label><input type="checkbox" data-k="horizon" checked> Horizon</label>
+        <label><input type="checkbox" data-k="hip" checked> Hip angle points</label>
+        <label><input type="checkbox" data-k="secondary" checked> Secondary angles (F roll, finger)</label>
+      </div>
+      <div class="modal-actions">
+        <button id="btn-load-defs-confirm">Load Selected</button>
+        <button id="btn-load-defs-file" style="background:none;border-color:#555;color:#aaa;">Load from file…</button>
+        <button id="btn-load-defs-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Excel export modal -->
+  <div id="modal-export-xl" class="modal hidden">
+    <div class="modal-box">
+      <h3>Export to Excel</h3>
+      <label>Subject #: <input type="number" id="input-xl-subj" min="1" step="1" value="1" /></label>
+      <label>Phase #: <input type="number" id="input-xl-phase" min="1" step="1" value="1" /></label>
+      <label>Trial #: <input type="number" id="input-xl-trial" min="1" step="1" value="1" /></label>
+      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;">
+        <span style="font-size:13px;">Front foot:
+          <button type="button" id="xl-foot-toggle" class="toggle" style="margin-left:6px;">Right</button>
+        </span>
+        <span style="font-size:13px;">Front eye:
+          <button type="button" id="xl-eye-toggle" class="toggle" style="margin-left:6px;">Right</button>
+        </span>
+        <span style="font-size:13px;">Units:
+          <button type="button" id="xl-units-toggle" class="toggle" style="margin-left:6px;">cm</button>
+        </span>
+        <span style="font-size:13px;">Grip:
+          <select id="xl-grip-select" style="margin-left:4px;background:#1a1a1e;color:#e8e8ea;border:1px solid #555;border-radius:4px;padding:3px;">
+            <option value="">—</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="custom">Custom…</option>
+          </select>
+          <input id="xl-grip-custom" type="text" placeholder="style name" maxlength="40" style="display:none;margin-left:4px;padding:3px;background:#1a1a1e;color:#e8e8ea;border:1px solid #555;border-radius:4px;width:90px;" />
+        </span>
+        <span style="font-size:13px;">Initials:
+          <input id="xl-initials-input" type="text" placeholder="ABC" maxlength="3" style="margin-left:4px;padding:3px;background:#1a1a1e;color:#e8e8ea;border:1px solid #555;border-radius:4px;width:44px;text-transform:uppercase;" />
+        </span>
+        <span id="xl-blade-type" style="font-size:13px;color:#aaa;">Blade 1</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:13px;">Dry run:</span>
+        <button type="button" id="xl-dryrun-toggle" style="padding:4px 12px;border:1px solid #555;border-radius:5px;background:#25252b;color:#e8e8ea;cursor:pointer;font-size:12px;">No</button>
+      </div>
+      <p id="xl-path-display" style="font-size:11px;color:#888;word-break:break-all;">No file chosen — will prompt on first export</p>
+      <div class="modal-actions">
+        <button id="btn-xl-confirm">Export</button>
+        <button id="btn-xl-change" style="background:none;border-color:#555;color:#aaa;font-size:11px;">Change file…</button>
+        <button id="btn-xl-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script type="module" src="mpassets://assets/pose-engine.js"></script>
+<script src="blade/blade-tracker.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

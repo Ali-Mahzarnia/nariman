@@ -1,0 +1,9 @@
+NARIMAN
+Copyright (C) 2026 Ali Mahzarnia
+
+This program is licensed under the GNU Affero General Public License v3.0
+(AGPL-3.0-only). See LICENSE for the full license text.
+
+This product includes several third-party open-source components used for
+on-device inference and media handling. Full attribution, per-component
+license texts, and usage notes are in THIRD_PARTY.md.

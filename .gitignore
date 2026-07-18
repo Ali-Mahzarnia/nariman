@@ -1,0 +1,90 @@
+node_modules/
+dist/
+out/
+build/
+.DS_Store
+.Rhistory
+
+# Bundled binaries & models (fetched/placed separately, not versioned)
+resources/bin/
+resources/win-vcruntime/   # Microsoft VC++ runtime DLLs for Windows onnxruntime
+
+# Speech-recognition model — fetched separately, not versioned (large, and
+# not derived from this project's own AGPL-licensed training)
+resources/models/*
+!resources/models/blade1.onnx
+!resources/models/blade2.onnx
+!resources/models/blade3.onnx
+
+# Model / weight backups — never commit or ship
+*.bak
+*.bak_*
+*.onnx.bak*
+
+# Build artifacts
+*.exe
+*.dmg
+*.AppImage
+*.deb
+*.snap
+
+# Archives
+source.zip
+*.zip
+
+# Video files
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.webm
+
+# Audio files
+*.wav
+
+# Segment/session files
+*.omsni
+
+# Excel outputs
+*.xlsx
+*.xls
+
+# CSV outputs (unless committed intentionally)
+*.csv
+
+# App-specific config not meant for the repo
+omsni_defs.json
+
+# Test scratch dirs
+blade_test/
+pose_test/
+
+# Python cache (from blade_measure.py)
+__pycache__/
+*.pyc
+
+# Real subject media (screenshots, captured images) — keep app assets,
+# built-in blade calibration reference photos, and marketing screenshots
+# tracked
+*.png
+*.jpg
+*.jpeg
+!assets/**
+!screenshots/**
+!blade_checkerboard.jpeg
+!blade_checkerboard2.jpeg
+!blade_checkerboard3.jpeg
+!docs/screenshot.png
+
+# Electron builder cache
+.cache/
+
+# ── Local-only: blade-pose YOLO training material ──────────────────────────
+# Training scripts, datasets, and base pretrained checkpoints for rebuilding
+# the blade-pose model. Never committed or pushed — stays on this machine
+# only. (The *final* exported inference weights — resources/models/blade{1,2,3}.onnx
+# — ARE tracked above: they ship inside the built app, so AGPL-3.0 requires
+# they be available alongside the source, not just the training pipeline.)
+blade_yolo/
+*.pt
+*.onnx.bak*

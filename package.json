@@ -1,0 +1,29 @@
+{
+  "name": "nariman",
+  "version": "1.0.0",
+  "description": "NARIMAN — Neonatal Airway Research: Intubation Measurement And Navigation",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "keywords": [
+    "intubation",
+    "neonatal-airway",
+    "video-measurement",
+    "range-of-motion",
+    "electron"
+  ],
+  "author": "Ali Mahzarnia",
+  "license": "AGPL-3.0-only",
+  "devDependencies": {
+    "electron": "^42.4.0",
+    "electron-builder": "^26.15.3"
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "^0.10.35",
+    "mp4box": "^2.3.0",
+    "onnxruntime-node": "^1.27.0",
+    "xlsx": "^0.18.5"
+  }
+}
