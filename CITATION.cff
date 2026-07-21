@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "NARIMAN — Neonatal Airway Research: Intubation Measurement And Navigation"
+authors:
+  - family-names: Mahzarnia
+    given-names: Ali
+repository-code: "https://github.com/Ali-Mahzarnia/nariman"
+license: AGPL-3.0
+version: 1.0.0
+date-released: 2026-07-18
