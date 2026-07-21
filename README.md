@@ -198,7 +198,7 @@ recorded sessions, videos, or exported data are included.
 If you use NARIMAN in your research, please cite it:
 
 > Mahzarnia, A. NARIMAN — Neonatal Airway Research: Intubation Measurement
-> And Navigation. https://doi.org/10.5281/zenodo.21473369
+> And Navigation. https://doi.org/10.5281/zenodo.21473368
 
 ---
 

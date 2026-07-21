@@ -5,10 +5,10 @@ authors:
   - family-names: Mahzarnia
     given-names: Ali
 repository-code: "https://github.com/Ali-Mahzarnia/nariman"
-doi: "10.5281/zenodo.21473369"
+doi: "10.5281/zenodo.21473368"
 identifiers:
   - type: doi
-    value: "10.5281/zenodo.21473369"
+    value: "10.5281/zenodo.21473368"
 license: AGPL-3.0
 version: 1.0.1
 date-released: 2026-07-18
